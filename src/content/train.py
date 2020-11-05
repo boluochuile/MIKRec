@@ -355,16 +355,16 @@ if __name__ == '__main__':
     test_name = 'test'
 
     if args.dataset == 'ml-1m':
-        path = '/content/dataset/MyComiRec/data/ml-1m_data/'
+        path = '/content/MIKRec/src/data/ml-1m_data/'
         item_count = 3417
     elif args.dataset == 'book':
-        path = '/content/dataset/MyComiRec/data/book_data/'
+        path = '/content/MIKRec/src/data/book_data/'
         item_count = 367983
         batch_size = 128
         maxlen = 20
         test_iter = 1000
     elif args.dataset == 'ml-10m':
-        path = '/content/dataset/MyComiRec/data/ml-10m_data/'
+        path = '/content/MIKRec/src/data/ml-10m_data/'
         item_count = 10197
 
     batch_size = args.batch_size
