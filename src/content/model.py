@@ -126,6 +126,8 @@ class Model_MSARec(Model):
             # (b, seq_len, dim)
             self.seq = normalize(self.seq)
 
+            self.dim = embedding_dim
+
             item_list_emb = tf.reshape(self.seq, [-1, seq_len, embedding_dim])
             # t = tf.expand_dims(positional_encoding(embedding_dim, seq_len), axis=0)
             # item_list_add_pos = item_list_emb + t
