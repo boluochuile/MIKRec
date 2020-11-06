@@ -189,9 +189,9 @@ class Model_SASRec(Model):
             self.mid_his_batch_embedded += t
 
             # Dropout
-            # self.seq = tf.layers.dropout(self.mid_his_batch_embedded,
-            #                              rate=dropout_rate,
-            #                              training=tf.convert_to_tensor(True))
+            self.seq = tf.layers.dropout(self.mid_his_batch_embedded,
+                                         rate=dropout_rate,
+                                         training=tf.convert_to_tensor(True))
             self.seq *= tf.reshape(self.mask, (-1, seq_len, 1))
 
             # Build blocks
