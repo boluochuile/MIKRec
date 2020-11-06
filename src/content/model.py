@@ -89,7 +89,7 @@ def get_shape(inputs):
 
     return shape
 
-def getKVector(self, seq, k):
+def getKVector(seq, k):
     centroid = []
     for i in range(seq.shape[0]):
         centroid.append(KMeans(n_clusters=k, random_state=0).fit(seq[0]).cluster_centers_)
@@ -226,7 +226,7 @@ class Model_SAKmeans(Model):
             self.seq = normalize(self.seq)
 
             num_heads = num_interest
-            self.user_eb = getKVector(self.seq, num_interest)
+            self.user_eb = getKVector(self.seq, num_heads)
             self.dim = embedding_dim
             item_list_emb = tf.reshape(self.seq, [-1, seq_len, embedding_dim])
 
