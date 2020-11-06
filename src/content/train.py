@@ -171,7 +171,7 @@ def evaluate_full(sess, test_data, model, model_path, batch_size, item_cate_map,
         return {'recall': recall, 'ndcg': ndcg, 'hitrate': hitrate}
     return {'recall': recall, 'ndcg': ndcg, 'hitrate': hitrate, 'diversity': diversity}
 
-def get_model(dataset, model_type, item_count, batch_size, maxlen):
+def get_model(sess, dataset, model_type, item_count, batch_size, maxlen):
     if model_type == 'MSARec':
         model = Model_MSARec(item_count, args.embedding_dim, args.hidden_size, batch_size, args.num_interest,
                              seq_len=args.maxlen, dropout_rate=args.dropout_rate, num_blocks=2)
@@ -179,7 +179,7 @@ def get_model(dataset, model_type, item_count, batch_size, maxlen):
         model = Model_SASRec(item_count, args.embedding_dim, args.hidden_size, batch_size, args.num_interest,
                              seq_len=args.maxlen, dropout_rate=args.dropout_rate, num_blocks=2)
     elif model_type == 'Model_SAKmeans':
-        model = Model_SAKmeans(item_count, args.embedding_dim, args.hidden_size, batch_size, args.num_interest,
+        model = Model_SAKmeans(sess, item_count, args.embedding_dim, args.hidden_size, batch_size, args.num_interest,
                              seq_len=args.maxlen, dropout_rate=args.dropout_rate, num_blocks=2)
     else:
         print ("Invalid model_type : %s", model_type)
@@ -233,7 +233,7 @@ def train(
         train_data = DataIterator(train_file, batch_size, maxlen, train_flag=0)
         valid_data = DataIterator(valid_file, batch_size, maxlen, train_flag=1)
         
-        model = get_model(dataset, model_type, item_count, batch_size, maxlen)
+        model = get_model(sess, dataset, model_type, item_count, batch_size, maxlen)
 
         # 初始化参数
         sess.run(tf.global_variables_initializer())

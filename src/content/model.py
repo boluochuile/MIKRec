@@ -89,10 +89,13 @@ def get_shape(inputs):
 
     return shape
 
-def getKVector(seq, k):
+def getKVector(sess, seq, k):
     centroid = []
-    for i in range(seq.shape[0]):
-        centroid.append(KMeans(n_clusters=k, random_state=0).fit(seq[0]).cluster_centers_)
+    data = sess.run(seq)
+    # for i in range(tf.shape(seq)[0]):
+    #     centroid.append(KMeans(n_clusters=k, random_state=0).fit(seq[i]).cluster_centers_)
+    for i in range(data.shape[0]):
+        centroid.append(KMeans(n_clusters=k, random_state=0).fit(data[i]).cluster_centers_)
     centroid = tf.convert_to_tensor(np.array(centroid))
 
     return centroid
@@ -187,7 +190,7 @@ class Model_MSARec(Model):
             self.build_sampled_softmax_loss(self.item_eb, readout)
 
 class Model_SAKmeans(Model):
-    def __init__(self, n_mid, embedding_dim, hidden_size, batch_size, num_interest, dropout_rate=0.2,
+    def __init__(self, sess, n_mid, embedding_dim, hidden_size, batch_size, num_interest, dropout_rate=0.2,
                  seq_len=256, num_blocks=2):
         super(Model_SAKmeans, self).__init__(n_mid, embedding_dim, hidden_size,
                                                    batch_size, seq_len, flag="Model_SAKmeans")
@@ -226,7 +229,7 @@ class Model_SAKmeans(Model):
             self.seq = normalize(self.seq)
 
             num_heads = num_interest
-            self.user_eb = getKVector(self.seq, num_heads)
+            self.user_eb = getKVector(sess, self.seq, num_heads)
             self.dim = embedding_dim
             item_list_emb = tf.reshape(self.seq, [-1, seq_len, embedding_dim])
 
