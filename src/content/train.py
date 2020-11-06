@@ -175,6 +175,9 @@ def get_model(dataset, model_type, item_count, batch_size, maxlen):
     if model_type == 'MSARec':
         model = Model_MSARec(item_count, args.embedding_dim, args.hidden_size, batch_size, args.num_interest,
                              seq_len=args.maxlen, dropout_rate=args.dropout_rate, num_blocks=2)
+    elif model_type == 'Model_SASRec':
+        model = Model_SASRec(item_count, args.embedding_dim, args.hidden_size, batch_size, args.num_interest,
+                             seq_len=args.maxlen, dropout_rate=args.dropout_rate, num_blocks=2)
     else:
         print ("Invalid model_type : %s", model_type)
         return
@@ -357,6 +360,9 @@ if __name__ == '__main__':
     if args.dataset == 'ml-1m':
         path = '/content/MIKRec/src/data/ml-1m_data/'
         item_count = 3417
+        batch_size = args.batch_size
+        maxlen = args.maxlen
+        test_iter = args.test_iter
     elif args.dataset == 'book':
         path = '/content/MIKRec/src/data/book_data/'
         item_count = 367983
@@ -366,11 +372,10 @@ if __name__ == '__main__':
     elif args.dataset == 'ml-10m':
         path = '/content/MIKRec/src/data/ml-10m_data/'
         item_count = 10197
+        batch_size = args.batch_size
+        maxlen = args.maxlen
+        test_iter = args.test_iter
 
-    batch_size = args.batch_size
-    maxlen = args.maxlen
-    test_iter = args.test_iter
-    
     train_file = path + args.dataset + '_train.txt'
     valid_file = path + args.dataset + '_valid.txt'
     test_file = path + args.dataset + '_test.txt'
