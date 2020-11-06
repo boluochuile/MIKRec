@@ -91,11 +91,11 @@ def get_shape(inputs):
 
 def getKVector(sess, seq, k):
     centroid = []
-    data = sess.run(seq)
-    # for i in range(tf.shape(seq)[0]):
-    #     centroid.append(KMeans(n_clusters=k, random_state=0).fit(seq[i]).cluster_centers_)
-    for i in range(data.shape[0]):
-        centroid.append(KMeans(n_clusters=k, random_state=0).fit(data[i]).cluster_centers_)
+    # data = sess.run(seq)
+    for i in range(tf.shape(seq)[0]):
+        centroid.append(KMeans(n_clusters=k, random_state=0).fit(seq[i]).cluster_centers_)
+    # for i in range(data.shape[0]):
+    #     centroid.append(KMeans(n_clusters=k, random_state=0).fit(data[i]).cluster_centers_)
     centroid = tf.convert_to_tensor(np.array(centroid))
 
     return centroid
