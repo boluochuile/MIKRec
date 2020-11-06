@@ -178,6 +178,9 @@ def get_model(dataset, model_type, item_count, batch_size, maxlen):
     elif model_type == 'Model_SASRec':
         model = Model_SASRec(item_count, args.embedding_dim, args.hidden_size, batch_size, args.num_interest,
                              seq_len=args.maxlen, dropout_rate=args.dropout_rate, num_blocks=2)
+    elif model_type == 'Model_SAKmeans':
+        model = Model_SAKmeans(item_count, args.embedding_dim, args.hidden_size, batch_size, args.num_interest,
+                             seq_len=args.maxlen, dropout_rate=args.dropout_rate, num_blocks=2)
     else:
         print ("Invalid model_type : %s", model_type)
         return

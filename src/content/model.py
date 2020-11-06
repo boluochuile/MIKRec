@@ -1,6 +1,8 @@
 import os
 import tensorflow as tf
 from modules import positional_encoding, multihead_attention, normalize, feedforward
+from sklearn.cluster import KMeans
+import numpy as np
 
 
 class Model(object):
@@ -86,6 +88,14 @@ def get_shape(inputs):
         shape.append(dim if dim is not None else dynamic_shape[i])
 
     return shape
+
+def getKVector(self, seq, k):
+    centroid = []
+    for i in range(seq.shape[0]):
+        centroid.append(KMeans(n_clusters=k, random_state=0).fit(seq[0]).cluster_centers_)
+    centroid = tf.convert_to_tensor(np.array(centroid))
+
+    return centroid
 
 class Model_MSARec(Model):
     def __init__(self, n_mid, embedding_dim, hidden_size, batch_size, num_interest, dropout_rate=0.2,
@@ -175,6 +185,64 @@ class Model_MSARec(Model):
                                     tf.shape(item_list_emb)[0]) * num_heads)
 
             self.build_sampled_softmax_loss(self.item_eb, readout)
+
+class Model_SAKmeans(Model):
+    def __init__(self, n_mid, embedding_dim, hidden_size, batch_size, num_interest, dropout_rate=0.2,
+                 seq_len=256, num_blocks=2):
+        super(Model_SAKmeans, self).__init__(n_mid, embedding_dim, hidden_size,
+                                                   batch_size, seq_len, flag="Model_SAKmeans")
+
+        with tf.variable_scope("Model_SAKmeans", reuse=tf.AUTO_REUSE) as scope:
+
+            # Positional Encoding
+            t = tf.expand_dims(positional_encoding(embedding_dim, seq_len), axis=0)
+            self.mid_his_batch_embedded += t
+
+            # Dropout
+            self.seq = tf.layers.dropout(self.mid_his_batch_embedded,
+                                         rate=dropout_rate,
+                                         training=tf.convert_to_tensor(True))
+            self.seq *= tf.reshape(self.mask, (-1, seq_len, 1))
+
+            # Build blocks
+            for i in range(num_blocks):
+                with tf.variable_scope("num_blocks_%d" % i):
+
+                    # Self-attention
+                    self.seq = multihead_attention(queries=normalize(self.seq),
+                                                   keys=self.seq,
+                                                   num_units=hidden_size,
+                                                   num_heads=num_interest,
+                                                   dropout_rate=dropout_rate,
+                                                   is_training=True,
+                                                   causality=True,
+                                                   scope="self_attention")
+
+                    # Feed forward
+                    self.seq = feedforward(normalize(self.seq), num_units=[hidden_size, hidden_size],
+                                           dropout_rate=dropout_rate, is_training=True)
+                    self.seq *= tf.reshape(self.mask, (-1, seq_len, 1))
+            # (b, seq_len, dim)
+            self.seq = normalize(self.seq)
+
+            num_heads = num_interest
+            self.user_eb = getKVector(self.seq, num_interest)
+            self.dim = embedding_dim
+            item_list_emb = tf.reshape(self.seq, [-1, seq_len, embedding_dim])
+
+            # item_list_emb = [-1, seq_len, embedding_dim]
+            # atten: (batch, num_heads, dim) * (batch, dim, 1) = (batch, num_heads, 1)
+            atten = tf.matmul(self.user_eb, tf.reshape(self.item_eb, [get_shape(item_list_emb)[0], self.dim, 1]))
+            atten = tf.nn.softmax(tf.pow(tf.reshape(atten, [get_shape(item_list_emb)[0], num_heads]), 1))
+
+            # 找出与target item最相似的用户兴趣向量
+            readout = tf.gather(tf.reshape(self.user_eb, [-1, self.dim]),
+                                tf.argmax(atten, axis=1, output_type=tf.int32) + tf.range(
+                                    tf.shape(item_list_emb)[0]) * num_heads)
+
+            self.build_sampled_softmax_loss(self.item_eb, readout)
+
+
 
 class Model_SASRec(Model):
     def __init__(self, n_mid, embedding_dim, hidden_size, batch_size, num_interest, dropout_rate=0.2,
